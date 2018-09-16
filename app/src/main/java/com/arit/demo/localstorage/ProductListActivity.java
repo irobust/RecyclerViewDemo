@@ -4,7 +4,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
+import android.view.Menu;
 
 import com.arit.demo.localstorage.model.Product;
 import com.arit.demo.localstorage.services.ProductService;
@@ -21,6 +23,8 @@ import retrofit2.Retrofit;
 public class ProductListActivity extends AppCompatActivity {
     @BindView(R.id.rcvProduct)
     RecyclerView rcvProduct;
+
+    private ProductAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +44,7 @@ public class ProductListActivity extends AppCompatActivity {
             public void onResponse(Call<List<Product>> call, Response<List<Product>> response) {
                 RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getBaseContext());
                 rcvProduct.setLayoutManager(layoutManager);
-                ProductAdapter adapter = new ProductAdapter(response.body());
+                adapter = new ProductAdapter(response.body());
                 rcvProduct.setAdapter(adapter);
             }
 
@@ -49,5 +53,25 @@ public class ProductListActivity extends AppCompatActivity {
                 Log.d("DEBUG", "Fail to connect api");
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.search_menu, menu);
+        SearchView searchProduct = (SearchView) menu.findItem(R.id.search).getActionView();
+        searchProduct.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String txtInput) {
+                String searchText = txtInput.toLowerCase();
+                adapter.doFilter(searchText);
+                return false;
+            }
+        });
+        return true;
     }
 }
